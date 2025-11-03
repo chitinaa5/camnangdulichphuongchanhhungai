@@ -1,0 +1,128 @@
+[
+  {
+    "name": "CENTRAL PREMIUM MALL",
+    "lat": 10.737610,
+    "lng": 106.669830,
+    "address": "856 Tạ Quang Bửu, Phường Chánh Hưng, TP.HCM",
+    "open_hours": "09:00 - 22:00",
+    "desc": "Trung tâm thương mại cao cấp với nhiều thương hiệu nổi tiếng, khu ẩm thực và rạp chiếu phim hiện đại.",
+    "category": "trung tâm thương mại"
+  },
+  {
+    "name": "PARCMALL",
+    "lat": 10.740950,
+    "lng": 106.678900,
+    "address": "314 Tạ Quang Bửu, Phường Chánh Hưng, TP.HCM",
+    "open_hours": "09:00 - 22:00",
+    "desc": "Khu mua sắm kết hợp giải trí và ăn uống, gần khu dân cư cao cấp Central Premium.",
+    "category": "trung tâm thương mại"
+  },
+  {
+    "name": "NHÀ THỜ NAM HẢI",
+    "lat": 10.737370,
+    "lng": 106.671740,
+    "address": "120 Tạ Quang Bửu, Phường Chánh Hưng, TP.HCM",
+    "open_hours": "05:00 - 21:00",
+    "desc": "Nhà thờ cổ kính, địa điểm tôn giáo nổi bật của người dân khu vực Phường Chánh Hưng.",
+    "category": "văn hóa"
+  },
+  {
+    "name": "ĐÌNH HƯNG PHÚ",
+    "lat": 10.747030,
+    "lng": 106.670910,
+    "address": "Đường Hưng Phú, Phường Chánh Hưng, TP.HCM",
+    "open_hours": "06:00 - 18:00",
+    "desc": "Đình cổ thờ Thành Hoàng, nơi tổ chức nhiều lễ hội truyền thống và sinh hoạt văn hóa dân gian.",
+    "category": "văn hóa"
+  },
+  {
+    "name": "CHÙA AN PHÚ",
+    "lat": 10.747660,
+    "lng": 106.668790,
+    "address": "26 Đường An Phú, Phường Chánh Hưng, TP.HCM",
+    "open_hours": "05:00 - 20:00",
+    "desc": "Ngôi chùa lớn, kiến trúc truyền thống, là nơi hành hương và chiêm bái của Phật tử trong khu vực.",
+    "category": "văn hóa"
+  },
+  {
+    "name": "LÀNG NƯỚNG NAM BỘ (TẠ QUANG BỬU)",
+    "lat": 10.737200,
+    "lng": 106.670800,
+    "address": "302 Tạ Quang Bửu, Phường Chánh Hưng, TP.HCM",
+    "open_hours": "10:00 - 23:00",
+    "desc": "Nhà hàng chuyên các món nướng dân dã mang hương vị Nam Bộ, không gian rộng rãi, thích hợp cho nhóm bạn và gia đình.",
+    "category": "ẩm thực"
+  },
+  {
+    "name": "MÌ CAY SASIN (TẠ QUANG BỬU)",
+    "lat": 10.735760,
+    "lng": 106.668550,
+    "address": "240 Tạ Quang Bửu, Phường Chánh Hưng, TP.HCM",
+    "open_hours": "09:00 - 22:00",
+    "desc": "Quán mì cay nổi tiếng với nhiều cấp độ, phù hợp cho tín đồ ăn cay và học sinh sinh viên.",
+    "category": "ẩm thực"
+  },
+  {
+    "name": "KATINAT (TẠ QUANG BỬU)",
+    "lat": 10.736230,
+    "lng": 106.669430,
+    "address": "268 Tạ Quang Bửu, Phường Chánh Hưng, TP.HCM",
+    "open_hours": "07:00 - 22:30",
+    "desc": "Quán cà phê hiện đại, thiết kế theo phong cách cổ điển, đồ uống đa dạng và không gian yên tĩnh.",
+    "category": "ẩm thực"
+  },
+  {
+    "name": "HIGHLANDS COFFEE (TẠ QUANG BỬU)",
+    "lat": 10.736050,
+    "lng": 106.669080,
+    "address": "272 Tạ Quang Bửu, Phường Chánh Hưng, TP.HCM",
+    "open_hours": "07:00 - 22:00",
+    "desc": "Thương hiệu cà phê nổi tiếng Việt Nam, không gian thoải mái, lý tưởng để gặp gỡ bạn bè hoặc làm việc.",
+    "category": "ẩm thực"
+  },
+  {
+    "name": "CẦU CHỮ Y",
+    "lat": 10.751050,
+    "lng": 106.683750,
+    "address": "Nối Phường Chợ Quán và Phường Chánh Hưng, TP.HCM",
+    "open_hours": "Cả ngày",
+    "desc": "Cây cầu mang tính biểu tượng của Phường Chánh Hưng, nối liền các khu vực trung tâm thành phố, đặc biệt đẹp khi nhìn vào buổi tối.",
+    "category": "cầu chữ y"
+  },
+  {
+    "name": "BỆNH VIỆN ĐA KHOA CHÁNH HƯNG",
+    "lat": 10.741722218630244,
+    "lng": 106.67651479172838,
+    "address": "82 Cao Lỗ, Phường Chánh Hưng, TP.HCM",
+    "open_hours": "07:30 - 17:00",
+    "desc": "Bệnh viện Đa khoa Phường Chánh Hưng là nơi khám bệnh quen thuộc và nhận được nhiều sự tin tưởng của người dân tại đây.",
+    "category": "y tế"
+  },
+  {
+    "name": "TRUNG TÂM CUNG ỨNG DỊCH VỤ - VĂN HÓA THỂ THAO PHƯỜNG CHÁNH HƯNG SỞ 3",
+    "lat": 10.741779659061564,
+    "lng": 106.66626781206708,
+    "address": "Số 7 Dương Quang Đông, Phường Chánh Hưng, TP.HCM",
+    "open_hours": "5:00 - 22:00",
+    "desc": "Trung tâm cung cấp các hoạt động thể thao, văn nghệ, lớp năng khiếu cho thanh thiếu niên và người dân địa phương. Nơi đây có sân bóng đá mini, phòng tập thể dục, và các lớp múa, võ thuật, đàn, vẽ được tổ chức thường xuyên.",
+    "category": "vui chơi"
+  },
+  {
+    "name": "TRUNG TÂM CUNG ỨNG DỊCH VỤ - VĂN HÓA THỂ THAO PHƯỜNG CHÁNH HƯNG CƠ SỞ 1",
+    "lat": 10.739631113842577,
+    "lng": 106.66784446087769,
+    "address": "Số 6 Dương Quang Đông, phường Chánh Hưng, TP.HCM",
+    "open_hours": "5:00 - 22:00",
+    "desc": "Là nơi vui chơi lành mạnh và bổ ích cho những người đam mê thể thao.",
+    "category": "vui chơi"
+  },
+  {
+    "name": "TRUNG TÂM CUNG ỨNG DỊCH VỤ - VĂN HÓA THỂ THAO PHƯỜNG CHÁNH HƯNG CƠ SỞ 2",
+    "lat": 10.739147754088222,
+    "lng": 106.66589252276094,
+    "address": "Số 8 Dương Quang Đông, phường Chánh Hưng, TP.HCM",
+    "open_hours": "5:00 - 22:00",
+    "desc": "Trung tâm được trang bị sân cầu lông, bóng rổ, lớp aerobic, và khu vui chơi cho trẻ em. Đây là điểm đến lý tưởng cho các hoạt động thể thao, rèn luyện sức khỏe và sinh hoạt cộng đồng.",
+    "category": "vui chơi"
+  }
+]

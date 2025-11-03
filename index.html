@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DuLichChanhHungAI</title>
+<style>
+	/* ===== KHUNG GIỚI THIỆU ===== */
+#infoPanel{
+  position:fixed;
+  top:-100%;
+  left:0;
+  width:100%;
+  height:100%;
+  background:#fffaf0;
+  border-bottom:4px solid #e2c97d;
+  z-index:99;
+  overflow-y:auto;
+  transition:top 0.6s ease;
+  box-sizing:border-box;
+  padding:20px;
+}
+#infoPanel.open{ top:60px; }
+#infoPanel h2{ text-align:center; color:#b3883b; margin:0 0 10px; }
+.info-header{ position:relative; }
+#closeInfoBtn{
+  position:absolute; top:0; right:0;
+  background:#d9b877; border:none; color:#fff;
+  padding:6px 10px; border-radius:6px; cursor:pointer;
+  font-weight:600;
+}
+#tabButtons{ display:flex; justify-content:center; gap:8px; margin-top:10px; }
+.tabBtn{
+  background:#e0c177; border:none; border-radius:6px;
+  padding:8px 14px; cursor:pointer; color:white; font-weight:600;
+}
+.tabBtn.active{ background:#b3883b; }
+.tabContent{ display:none; margin-top:12px; color:#3d2b1f; line-height:1.6; }
+.tabContent.active{ display:block; }
+
+  :root{
+    --accent:#0b66ff;
+    --panel-bg:#fff7e0;
+    --panel-text:#3b3024;
+    --warm:#d9b57b;
+    --warm-dark:#c48f3a;
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;background:#f6f3ec;color:#222}
+  header{display:flex;align-items:center;gap:12px;padding:10px 14px;background:white;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+  header h1{margin:0;font-size:18px;color:var(--accent)}
+  header .subtitle{font-size:12px;color:#666}
+  main{display:flex;gap:12px;padding:12px;box-sizing:border-box;height:calc(100vh - 62px)}
+  /* map area */
+  #mapWrap{flex:1;border-radius:10px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#eaf6fb}
+  #mapBase{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:0.98}
+  #mapCanvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:5}
+  #markerLabel{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:rgba(255,255,255,0.95);padding:8px 12px;border-radius:8px;display:none;z-index:30;font-size:14px;color:#111;text-align:center;white-space:pre-line}
+  .save-row{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:30;display:flex;gap:8px}
+  .save-btn{background:linear-gradient(180deg,var(--warm),var(--warm-dark));border:none;color:white;padding:10px 14px;border-radius:10px;font-weight:600;display:flex;gap:8px;align-items:center;box-shadow:0 6px 14px rgba(0,0,0,0.12);cursor:pointer}
+  /* chat panel */
+  .panel{width:360px;display:flex;flex-direction:column;gap:8px;background:var(--panel-bg);border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,0.06);position:relative;color:var(--panel-text)}
+  .panel h2{margin:0;font-size:16px}
+  .chat{background:transparent;padding:8px;border-radius:8px;flex:1;overflow:auto;border:1px dashed rgba(0,0,0,0.06)}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  input[type=text]{flex:1;padding:8px;border-radius:6px;border:1px solid #ddd}
+  button.small{padding:8px 10px;border-radius:6px;border:0;background:var(--accent);color:white;cursor:pointer}
+  button.alt{background:#28a745}
+  footer{padding:8px 12px;font-size:13px;color:#666;background:transparent;border-top:0;margin-top:6px}
+  .msg.user{color:var(--accent);margin-bottom:6px}
+  .msg.bot{color:#222;margin-bottom:6px}
+  .compass{position:absolute;top:12px;right:12px;width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;z-index:40}
+  .compass svg{width:36px;height:36px;transform-origin:center;animation:spin 8s linear infinite}
+  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  @media(max-width:900px){main{flex-direction:column} .panel{width:100%;height:360px} #mapWrap{height:360px}}
+</style>
+</head>
+<body>
+	<!-- Popup chi tiết địa điểm -->
+<div id="detailPanel" style="
+  display:none; position:fixed; top:50%; left:50%;
+  transform:translate(-50%,-50%); background:white; border-radius:12px;
+  padding:20px; box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  width:90%; max-width:420px; z-index:999; color:#333;">
+  <h3 id="detailTitle" style="margin-top:0;color:#b3883b"></h3>
+  <p id="detailAddress" style="margin:6px 0;font-size:14px;color:#444"></p>
+  <p id="detailHours" style="margin:6px 0;font-size:13px;color:#555"></p>
+  <p id="detailDesc" style="margin:10px 0;line-height:1.6;"></p>
+  <button id="closeDetailBtn" style="
+    background:#b3883b;color:#fff;border:none;padding:8px 12px;
+    border-radius:8px;cursor:pointer;font-weight:600;">Đóng</button>
+</div>
+<header>
+  <div style="width:44px;height:44px;flex:0 0 44px">
+    <svg viewBox="0 0 64 64" width="44" height="44" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#4facfe"/><stop offset="1" stop-color="#00f2fe"/></linearGradient></defs>
+      <path d="M8 8 L28 4 L44 12 L24 18 Z" fill="url(#g)"/>
+      <path d="M8 28 L28 24 L44 32 L24 38 Z" fill="#a7f3d0"/>
+    </svg>
+  </div>
+  <div style="display:flex;flex-direction:column">
+    <h1>DuLichChanhHungAI</h1>
+    <div class="subtitle">Hướng dẫn viên du lịch AI — Phường Chánh Hưng</div>
+  </div>
+</header>
+<!-- ===== KHUNG GIỚI THIỆU / LỊCH SỬ ===== -->
+<div id="infoPanel">
+  <div class="info-header">
+    <h2>📘 Giới thiệu Phường Chánh Hưng</h2>
+    <button id="closeInfoBtn">Đóng</button>
+  </div>
+
+  <div id="tabButtons">
+    <button class="tabBtn active" data-tab="history">🕰️ Lịch sử</button>
+    <button class="tabBtn" data-tab="food">🍜 Ẩm thực</button>
+    <button class="tabBtn" data-tab="culture">🏯 Văn hóa</button>
+    <button class="tabBtn" data-tab="tour">🗺️ Tour</button>
+  </div>
+
+  <div id="history" class="tabContent active">
+    <p><b>Phường Chánh Hưng</b> nằm ở trung tâm Quận 8(cũ), TP. Hồ Chí Minh, nổi bật với hệ thống kênh rạch và các khu dân cư lâu đời.
+    Trước đây là làng Hưng Phú, nơi gắn liền với quá trình hình thành vùng Nam Bộ, trải qua nhiều giai đoạn phát triển đô thị và văn hóa phong phú.</p>
+  </div>
+
+  <div id="food" class="tabContent">
+    <p>Khu vực Tạ Quang Bửu là thiên đường ẩm thực, từ <b>mì cay Sasin</b> đến <b>làng nướng Nam Bộ</b>.  
+    Ngoài ra còn có <b>Highlands Coffee</b> và <b>Katinat</b> phục vụ cà phê hiện đại cho du khách.</p>
+  </div>
+
+  <div id="culture" class="tabContent">
+    <p>Phường có nhiều điểm tôn giáo như <b>Nhà thờ Nam Hải</b>, <b>Đình Hưng Phú</b> và <b>Chùa An Phú</b>, tạo nên không gian tín ngưỡng đặc trưng Nam Bộ.</p>
+  </div>
+
+  <div id="tour" class="tabContent">
+    <p>✨ <b>Tour gợi ý:</b></p>
+    <ol>
+      <li>Nhà thờ Nam Hải – mở đầu hành trình tâm linh.</li>
+      <li>Đình Hưng Phú – khám phá kiến trúc cổ.</li>
+      <li>Central Premium Mall – trung tâm thương mại hiện đại.</li>
+      <li>Làng Nướng Nam Bộ – thưởng thức ẩm thực địa phương.</li>
+      <li>Cầu Chữ Y – biểu tượng nối kết Quận 5 và Quận 8.</li>
+    </ol>
+  </div>
+</div>
+<main>
+  <div id="mapWrap" aria-label="Bản đồ 2D phong cách pastel">
+    <!-- Bạn phải đặt map_base.png (2560x1600) vào cùng thư mục -->
+    <img id="mapBase" src="map_base.png" alt="Bản đồ nền" />
+    <canvas id="mapCanvas"></canvas>
+    <div id="markerLabel"></div>
+
+    <div class="save-row">
+      <button id="saveBtn" class="save-btn" title="Lưu lộ trình (GPX)">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="#fff" d="M12 2C9.8 2 8 3.8 8 6c0 3.6 4 7.7 4 7.7S16 9.6 16 6c0-2.2-1.8-4-4-4zm0 16.5c-1.7 0-3-1.3-3-3H9c0 1.1.9 2 2 2s2-.9 2-2h0c0 1.7-1.3 3-3 3z"/>
+        </svg>
+        Lưu lộ trình
+      </button>
+    </div>
+  </div>
+
+  <div class="panel" role="region" aria-label="Chatbot">
+    <h2>Chánh Hưng AI</h2>
+
+    <div class="compass" title="La bàn">
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="bronze" x1="0" x2="1"><stop offset="0" stop-color="#d99f4a"/><stop offset="1" stop-color="#b0762b"/></linearGradient></defs>
+        <circle cx="32" cy="32" r="28" fill="url(#bronze)" stroke="#8a5e2a" stroke-width="1.5"/>
+        <polygon points="32,12 38,32 32,28 26,32" fill="#fff3db" opacity="0.9"/>
+        <circle cx="32" cy="32" r="4" fill="#fff3db"/>
+      </svg>
+    </div>
+
+    <div id="chatBox" class="chat" aria-live="polite"></div>
+
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="userInput" type="text" placeholder="Gõ: 'Cho tôi tour ẩm thực'..." aria-label="Nhập yêu cầu"/>
+      <button id="sendBtn" class="small">Gửi</button>
+    </div>
+
+    <div class="controls">
+      <button id="routeModeBtn" class="small alt">🗺️ Chọn lộ trình</button>
+      <button id="narrateBtn" class="small">🎙️ Thuyết minh</button>
+      <button id="listenBtn" class="small">🎧 Nghe</button>
+      <button id="exportBtn" class="small">💾 Xuất data.json</button>
+      <button id="uploadBtn" class="small alt">📂 Upload data.json</button>
+      <input id="fileInput" type="file" accept=".json" style="display:none" />
+    </div>
+
+    <div style="margin-top:8px;font-size:13px;color:#444">
+      <b>Lời chào:</b> Xin chào! Mình là <b>Chánh Hưng AI</b> — hướng dẫn viên du lịch của bạn 🌞
+    </div>
+
+    
+  </div>
+</main>
+
+<script>
+/* ---------------------------
+  Helper UI / speech functions
+   --------------------------- */
+const chatBox = document.getElementById('chatBox');
+function appendUser(t){ const d=document.createElement('div'); d.className='msg user'; d.textContent='Bạn: '+t; chatBox.appendChild(d); chatBox.scrollTop=chatBox.scrollHeight; }
+function appendBot(t){ const d=document.createElement('div'); d.className='msg bot'; d.textContent='Chánh Hưng AI: '+t; chatBox.appendChild(d); chatBox.scrollTop=chatBox.scrollHeight; }
+
+function pickFemaleVoice(){
+  const voices = window.speechSynthesis.getVoices();
+  if(!voices || voices.length===0) return null;
+  let v = voices.find(voice => voice.lang && voice.lang.startsWith('vi') && /female|nữ|thu/i.test(voice.name));
+  if(!v) v = voices.find(voice => voice.lang && voice.lang.startsWith('vi'));
+  if(!v) v = voices[0];
+  return v;
+}
+function speak(text){
+  return new Promise(res=>{
+    try{
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'vi-VN';
+      const v = pickFemaleVoice();
+      if(v) u.voice = v;
+      u.rate = 1.0;
+      u.onend = res;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    }catch(e){
+      console.warn(e);
+      setTimeout(res,700);
+    }
+  });
+}
+
+/* --- load locations (data.json) --- */
+window.locations = window.locations || null;
+async function loadLocations(){
+  if(window.locations && window.locations.length) return window.locations;
+  try{
+    const r = await fetch('data.json');
+    window.locations = await r.json();
+    return window.locations;
+  }catch(e){
+    window.locations = [];
+    return window.locations;
+  }
+}
+
+/* ---------------------------
+   Map canvas (2D flat map)
+   --------------------------- */
+(function(){
+  const wrap = document.getElementById('mapWrap');
+  const canvas = document.getElementById('mapCanvas');
+  const ctx = canvas.getContext('2d');
+  const mapImg = document.getElementById('mapBase');
+  const label = document.getElementById('markerLabel');
+  const saveBtn = document.getElementById('saveBtn');
+
+  let DPR = window.devicePixelRatio || 1;
+  let zoom = 1, panX = 0, panY = 0;
+  let dragging = false, last = {x:0,y:0};
+  window.routePoints = window.routePoints || [];
+  window.routeMode = false;
+
+  function resize(){
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    DPR = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(w * DPR);
+    canvas.height = Math.floor(h * DPR);
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    draw();
+  }
+  window.addEventListener('resize', resize);
+
+  // bbox mapping from lat/lng to image pixels
+  // we will set imageBounds below after loading data / map (center at Nhà Thờ Nam Hải)
+  let bbox = null;
+  // default bbox (will be overwritten by computeBBox)
+  function computeBBox(){
+  	
+    if(!window.locations || window.locations.length===0) return null;
+    let minLat=Infinity,maxLat=-Infinity,minLng=Infinity,maxLng=-Infinity;
+    window.locations.forEach(p=>{
+      const lat = parseFloat(p.lat), lng = parseFloat(p.lng);
+      if(isFinite(lat) && isFinite(lng)){
+        minLat = Math.min(minLat, lat);
+        maxLat = Math.max(maxLat, lat);
+        minLng = Math.min(minLng, lng);
+        maxLng = Math.max(maxLng, lng);
+      }
+    });
+    if(!isFinite(minLat)) return null;
+    // expand a bit to include margins on image
+    const padLat = (maxLat-minLat)*0.6 || 0.003;
+    const padLng = (maxLng-minLng)*0.6 || 0.003;
+    bbox = {
+    minLat: 10.7271835, // góc dưới (Nam)
+    maxLat: 10.7519689, // góc trên (Bắc)
+    minLng: 106.6630032, // bên trái (Tây)
+    maxLng: 106.6929469  // bên phải (Đông)
+  };
+  return bbox;
+}
+
+
+  // map lat/lng to pixel coordinates relative to image displayed
+  function latLngToImgXY(lat,lng){
+    if(!bbox) return {x:0,y:0};
+    // image natural size relative mapping: u for x, v for y
+    const u = (lng - bbox.minLng) / (bbox.maxLng - bbox.minLng);
+    const v = 1 - ((lat - bbox.minLat) / (bbox.maxLat - bbox.minLat));
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    return { x: u * w, y: v * h };
+  }
+
+  // --- Cache icon pastel ---
+const iconCache = {};
+const basePath = "./"; // vì tất cả hình nằm cùng thư mục index.html
+const iconPaths = {
+  "ẩm thực": basePath + "food.png",
+  "văn hóa": basePath + "culture.png",
+  "trung tâm thương mại": basePath + "mall.png",
+  "y tế": basePath + "health.png",
+  "vui chơi": basePath + "fun.png",
+  "cầu chữ y": basePath + "bridge.png",
+  "gợi ý": basePath + "bridge.png",
+  "default": basePath + "bridge.png"
+};
+
+// Nạp trước hình icon
+for (const key in iconPaths) {
+  const img = new Image();
+  img.src = iconPaths[key];
+  iconCache[key] = img;
+}
+
+// --- Hàm vẽ chính ---
+// --- Hàm vẽ chính ---
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Vẽ đường đi (route)
+  if (window.routePoints && window.routePoints.length >= 2) {
+    ctx.beginPath();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#007bff";
+    window.routePoints.forEach((p, i) => {
+      const pt = latLngToImgXY(parseFloat(p.lat), parseFloat(p.lng));
+      if (i === 0) ctx.moveTo(pt.x, pt.y);
+      else ctx.lineTo(pt.x, pt.y);
+    });
+    ctx.stroke();
+  }
+
+  // Vẽ icon marker cân bằng vị trí & kích thước
+  (window.locations || []).forEach(loc => {
+    const p = latLngToImgXY(parseFloat(loc.lat), parseFloat(loc.lng));
+    let key = "default";
+    if (loc.category && iconCache[loc.category]) key = loc.category;
+
+    const img = iconCache[key];
+    if (img && img.complete) {
+      const baseSize = 40; // icon lớn hơn chút
+const size = baseSize;
+const offsetY = size * 0.3; // cân tâm icon giống "vui chơi"
+ctx.drawImage(img, p.x - size / 2, p.y - size / 2, size, size);
+    } else {
+      // fallback khi icon chưa load
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = "#e85a4f";
+      ctx.fill();
+    }
+  });
+}
+  // simple drag to pan (moves underlying image via CSS transform)
+  let imgPanX = 0, imgPanY = 0;
+  // Không cho zoom hoặc di chuyển nền bản đồ
+function applyImageTransform(){
+  mapImg.style.transform = 'none';
+}
+
+  canvas.addEventListener('pointerdown', e=>{
+    dragging = true; last={x:e.clientX,y:e.clientY}; canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointerup', e=>{ dragging=false; try{ canvas.releasePointerCapture(e.pointerId);}catch(_){} });
+  canvas.addEventListener('pointermove', e=>{
+    if(dragging){
+      const dx = e.clientX - last.x; const dy = e.clientY - last.y;
+      imgPanX += dx; imgPanY += dy;
+      last = {x:e.clientX,y:e.clientY};
+      applyImageTransform(); draw();
+    }
+  });
+
+  // wheel zoom (desktop)
+  // Tắt tính năng zoom nền
+canvas.addEventListener('wheel', e=>{
+  e.preventDefault();
+  // Không thay đổi zoom
+  appendBot('🔒 Chức năng zoom bản đồ đã bị tắt để tránh lệch nền.');
+});
+
+  // click detection: show address + speak (no auto pan/zoom)
+  canvas.addEventListener('click', async e=>{
+    const rect = canvas.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    let found = null, minDist = 20;
+    (window.locations || []).forEach(loc=>{
+      const p = latLngToImgXY(parseFloat(loc.lat), parseFloat(loc.lng));
+      const d = Math.hypot(p.x - cx, p.y - cy);
+      if(d < minDist){ found = loc; minDist = d; }
+    });
+    if(!found) return;
+    label.style.display = 'block'; label.innerText = `${found.name}\nĐịa chỉ: ${found.address}`;
+    setTimeout(()=> label.style.display='none', 3500);
+    appendBot(`📍 ${found.name}\nĐịa chỉ: ${found.address}`);
+    await speak(`Địa chỉ của ${found.name} là ${found.address}`);
+    // 👉 Hiện popup chi tiết địa điểm khi nhấn vào bản đồ
+document.getElementById('detailTitle').textContent = found.name;
+document.getElementById('detailAddress').textContent = '📍 ' + found.address;
+document.getElementById('detailHours').textContent = '🕓 Giờ mở cửa: ' + (found.open_hours || 'Không rõ');
+document.getElementById('detailDesc').textContent = found.desc || 'Chưa có mô tả.';
+document.getElementById('detailPanel').style.display = 'block';
+    // add to routePoints if routeMode on
+    if(window.routeMode){
+      window.routePoints = window.routePoints || [];
+      window.routePoints.push({lat: found.lat, lng: found.lng});
+      draw();
+    }
+  });
+
+  // save GPX
+  saveBtn.addEventListener('click', ()=>{
+    const pts = window.routePoints || [];
+    if(!pts || pts.length===0){ appendBot('🌸 Bạn chưa chọn điểm nào để lưu lộ trình nha.'); return; }
+    const enriched = pts.map(p=>{
+      const found = (window.locations||[]).find(l=> String(l.lat)==String(p.lat) && String(l.lng)==String(p.lng));
+      return { lat: p.lat, lng: p.lng, name: found?found.name:'' };
+    });
+    const now = new Date().toISOString();
+    let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="DuLichChanhHungAI" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata>\n    <name>lo_trinh_camhung</name>\n    <time>${now}</time>\n  </metadata>\n  <trk>\n    <name>lo_trinh_camhung</name>\n    <trkseg>\n`;
+    enriched.forEach(p => {
+      const name = (p.name||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      gpx += `      <trkpt lat="${p.lat}" lon="${p.lng}"><name>${name}</name></trkpt>\n`;
+    });
+    gpx += '    </trkseg>\n  </trk>\n</gpx>';
+    const blob = new Blob([gpx], {type:'application/gpx+xml'});
+    const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='lo_trinh_camhung.gpx'; a.click(); URL.revokeObjectURL(a.href);
+    appendBot('💾 Đã tạo file GPX: lo_trinh_camhung.gpx');
+  });
+// --- Hiển thị chi tiết địa điểm ---
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('detail-btn')) {
+    const name = e.target.dataset.name;
+    const loc = (window.locations || []).find(l => l.name === name);
+    if (!loc) return;
+    document.getElementById('detailTitle').textContent = loc.name;
+    document.getElementById('detailAddress').textContent = '📍 ' + loc.address;
+    document.getElementById('detailHours').textContent = '🕓 Giờ mở cửa: ' + (loc.open_hours || 'Không rõ');
+    document.getElementById('detailDesc').textContent = loc.desc || 'Chưa có mô tả.';
+    document.getElementById('detailPanel').style.display = 'block';
+  }
+});
+
+document.getElementById('closeDetailBtn').addEventListener('click', ()=>{
+  document.getElementById('detailPanel').style.display = 'none';
+});
+  // init
+  loadLocations().then(()=>{
+    computeBBox();
+    resize();
+    draw();
+  });
+})();
+  
+/* --- UI: route mode, narrate, listen, export/upload --- */
+const routeModeBtn = document.getElementById('routeModeBtn');
+routeModeBtn.addEventListener('click', ()=>{
+  window.routeMode = !window.routeMode;
+  routeModeBtn.textContent = window.routeMode ? 'Đang chọn lộ trình (bấm để tắt)' : '🗺️ Chọn lộ trình';
+});
+
+const narrateBtn = document.getElementById('narrateBtn');
+narrateBtn.addEventListener('click', async ()=>{
+  if(!window.routePoints || window.routePoints.length === 0){ appendBot('Chưa có tuyến để thuyết minh.'); return; }
+  appendBot('🎧 Bắt đầu thuyết minh...');
+  for(let i=0;i<window.routePoints.length;i++){
+    const p = window.routePoints[i];
+    const loc = (window.locations||[]).find(l=> String(l.lat)==String(p.lat) && String(l.lng)==String(p.lng)) || {name:'Điểm '+(i+1), address:''};
+    appendBot((i+1)+'. '+loc.name+': '+(loc.address||''));
+    await speak(`Điểm ${i+1}: ${loc.name}. Địa chỉ: ${loc.address || 'không rõ'}`);
+  }
+  appendBot('🎉 Hoàn thành!');
+});
+
+const listenBtn = document.getElementById('listenBtn');
+listenBtn.addEventListener('click', ()=>{
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ appendBot('Trình duyệt không hỗ trợ nhận giọng.'); return; }
+  const rec = new SR(); rec.lang='vi-VN';
+  rec.onresult = (e)=>{
+    const t = e.results[0][0].transcript;
+    appendUser(t);
+    if(/tour|tuyến|gợi ý|ẩm thực|ăn/i.test(t)) createAutoRoute(t);
+    else{
+      const found = (window.locations||[]).find(l=> t.toLowerCase().includes(l.name.toLowerCase()));
+      if(found){ appendBot(found.address); speak(found.address); } else appendBot('Mình chưa hiểu. Thử nói "Cho tôi tour ẩm thực".');
+    }
+  };
+  rec.onerror = ()=> appendBot('Lỗi nhận dạng giọng nói');
+  rec.start(); appendBot('🎧 Đang nghe...');
+});
+
+function createAutoRoute(text){
+  let candidates = (window.locations||[]).slice();
+  if(/ẩm thực|ăn|quán|cà phê|nhà hàng|mì|nướng/i.test(text)) candidates = (window.locations||[]).filter(l=> /cà phê|mì|nướng|Highlands|LÀNG|làng/i.test(l.name) || /cà phê|ẩm thực|mì|nướng/i.test(l.desc));
+  const chosen = candidates.slice(0, Math.min(6, candidates.length));
+  window.routePoints = chosen.map(c=> ({lat:c.lat,lng:c.lng}));
+  appendBot('✨ Đã tạo tuyến gợi ý ('+chosen.length+' điểm).');
+  // redraw
+  if(window.map3d && window.map3d.draw) window.map3d.draw();
+}
+
+/* export / upload data.json */
+const exportBtn = document.getElementById('exportBtn');
+exportBtn.addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(window.locations||[],null,2)],{type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='data.json'; a.click(); URL.revokeObjectURL(a.href);
+  appendBot('Đã xuất data.json');
+});
+const uploadBtn = document.getElementById('uploadBtn');
+const fileInput = document.getElementById('fileInput');
+uploadBtn.addEventListener('click', ()=> fileInput.click());
+fileInput.addEventListener('change', async e=>{
+  const f = e.target.files[0]; if(!f) return;
+  try{
+    const txt = await f.text(); const j = JSON.parse(txt);
+    window.locations = j;
+    // recompute bbox
+    if(window.map3d && window.map3d.resize) window.map3d.resize();
+    appendBot('Đã nạp data.json');
+  }catch(err){ appendBot('File không hợp lệ'); }
+});
+
+/* send */
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+sendBtn.addEventListener('click', ()=>{
+  const t = userInput.value.trim();
+  if(!t) return;
+  appendUser(t);
+  userInput.value = '';
+
+  // --- TOUR VĂN HÓA ---
+  if (/tour văn hóa|văn hóa|đình|chùa|nhà thờ/i.test(t)) {
+    appendBot("🏯 Đề xuất tour văn hóa tại Phường Chánh Hưng:");
+    (window.locations || [])
+      .filter(l => /Đình|Chùa|Nhà thờ/i.test(l.name) || l.category === "văn hóa")
+      .forEach((loc, i) => {
+        const index = i + 1;
+        const msg = document.createElement('div');
+        msg.className = 'msg bot';
+        msg.innerHTML = `Chánh Hưng AI: ${index}. <b>${loc.name}</b><br>📍 ${loc.address}<br>
+          <button class="detail-btn" data-name="${loc.name}"
+            style="margin-top:4px;background:#b3883b;color:white;border:none;padding:6px 10px;
+            border-radius:6px;cursor:pointer;font-size:13px;">📖 Giới thiệu chi tiết</button>`;
+        chatBox.appendChild(msg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+    return;
+  }
+
+  // --- TOUR TRUNG TÂM THƯƠNG MẠI ---
+  if (/trung tâm thương mại|mall|mua sắm|shop|parcmall|central/i.test(t)) {
+    appendBot("🛍️ Tour tham quan Trung tâm thương mại gồm:");
+    (window.locations || [])
+      .filter(l => /Mall|Trung tâm|Parc|Central/i.test(l.name) || l.category === "trung tâm thương mại")
+      .forEach((loc, i) => {
+        const index = i + 1;
+        const msg = document.createElement('div');
+        msg.className = 'msg bot';
+        msg.innerHTML = `Chánh Hưng AI: ${index}. <b>${loc.name}</b><br>📍 ${loc.address}<br>
+          <button class="detail-btn" data-name="${loc.name}"
+            style="margin-top:4px;background:#b3883b;color:white;border:none;padding:6px 10px;
+            border-radius:6px;cursor:pointer;font-size:13px;">📖 Giới thiệu chi tiết</button>`;
+        chatBox.appendChild(msg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+    return;
+  }
+
+  // --- TOUR ẨM THỰC ---
+  if (/tour ẩm thực|ẩm thực|ăn|quán|cà phê|mì|nướng/i.test(t)) {
+    appendBot("🍜 Đề xuất tour ẩm thực tại Phường Chánh Hưng:");
+    (window.locations || [])
+      .filter(l => /cà phê|mì|nướng|Highlands|KATINAT|SASIN|LÀNG|ẩm thực/i.test(l.name) || l.category === "ẩm thực")
+      .forEach((loc, i) => {
+        const index = i + 1;
+        const msg = document.createElement('div');
+        msg.className = 'msg bot';
+        msg.innerHTML = `Chánh Hưng AI: ${index}. <b>${loc.name}</b><br>📍 ${loc.address}<br>
+          <button class="detail-btn" data-name="${loc.name}"
+            style="margin-top:4px;background:#b3883b;color:white;border:none;padding:6px 10px;
+            border-radius:6px;cursor:pointer;font-size:13px;">📖 Giới thiệu chi tiết</button>`;
+        chatBox.appendChild(msg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+    return;
+  }
+
+  // --- TOUR VUI CHƠI ---
+  if (/tour vui chơi|vui chơi|thể thao|giải trí|hoạt động ngoài trời/i.test(t)) {
+    appendBot("🎡 Đề xuất tour vui chơi – thể thao tại Phường Chánh Hưng:");
+    (window.locations || [])
+      .filter(l => /vui chơi|thể thao|Trung tâm Cung Ứng Dịch Vụ/i.test(l.name) || l.category === "vui chơi")
+      .forEach((loc, i) => {
+        const index = i + 1;
+        const msg = document.createElement('div');
+        msg.className = 'msg bot';
+        msg.innerHTML = `Chánh Hưng AI: ${index}. <b>${loc.name}</b><br>📍 ${loc.address}<br>
+          <button class="detail-btn" data-name="${loc.name}"
+            style="margin-top:4px;background:#b3883b;color:white;border:none;padding:6px 10px;
+            border-radius:6px;cursor:pointer;font-size:13px;">📖 Giới thiệu chi tiết</button>`;
+        chatBox.appendChild(msg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+    return;
+  }
+
+  // --- MẶC ĐỊNH ---
+  const found = (window.locations || []).find(l => t.toLowerCase().includes(l.name.toLowerCase()));
+  if (found) {
+    appendBot(`📍 ${found.name}\nĐịa chỉ: ${found.address}`);
+    speak(found.address);
+  } else {
+    appendBot('Mình chưa hiểu, thử nói "Cho tôi tour ẩm thực" hoặc "tour văn hóa" nhé.');
+  }
+});
+/* greeting */
+window.addEventListener('load', async ()=>{
+  const greeting = `Xin chào! Mình là Chánh Hưng AI — hướng dẫn viên du lịch ảo của bạn tại Phường Chánh Hưng. Bạn có thể chạm vào các ghim để nghe địa chỉ hoặc chọn lộ trình du lịch nhé 🌞`;
+  appendBot(greeting);
+  setTimeout(()=> speak(greeting), 300);
+});
+/* --- Tab Giới thiệu / Lịch sử --- */
+const openInfoBtn = document.createElement('button');
+openInfoBtn.textContent = '📘 Giới thiệu';
+openInfoBtn.style.cssText = 'position:fixed;bottom:16px;right:16px;background:#b3883b;color:#fff;border:none;padding:10px 14px;border-radius:8px;font-weight:600;z-index:50;cursor:pointer;';
+document.body.appendChild(openInfoBtn);
+
+const infoPanel = document.getElementById('infoPanel');
+const closeInfoBtn = document.getElementById('closeInfoBtn');
+const tabBtns = document.querySelectorAll('.tabBtn');
+const tabs = document.querySelectorAll('.tabContent');
+
+openInfoBtn.addEventListener('click', ()=> infoPanel.classList.add('open'));
+closeInfoBtn.addEventListener('click', ()=> infoPanel.classList.remove('open'));
+
+tabBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    tabBtns.forEach(b=>b.classList.remove('active'));
+    tabs.forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
