@@ -416,13 +416,27 @@ canvas.addEventListener('wheel', e=>{
     setTimeout(()=> label.style.display='none', 3500);
     appendBot(`📍 ${found.name}\nĐịa chỉ: ${found.address}`);
     await speak(`Địa chỉ của ${found.name} là ${found.address}`);
-    // 👉 Hiện popup chi tiết địa điểm khi nhấn vào bản đồ
+// --- Hiển thị popup chi tiết khi nhấn icon trên bản đồ ---
 document.getElementById('detailTitle').textContent = found.name;
 document.getElementById('detailAddress').textContent = '📍 ' + found.address;
 document.getElementById('detailHours').textContent = '🕓 Giờ mở cửa: ' + (found.open_hours || 'Không rõ');
-document.getElementById('detailDesc').textContent = found.desc || 'Chưa có mô tả.';
+
+document.getElementById('detailDesc').innerHTML = `
+  ${found.desc || 'Chưa có mô tả.'}
+  <div style="margin-top:12px;text-align:center;">
+    <button id="showDetailBtn"
+      style="background:#b3883b;color:#fff;border:none;
+      padding:10px 14px;border-radius:8px;
+      cursor:pointer;font-weight:600;">
+      📖 Giới thiệu chi tiết
+    </button>
+  </div>`;
+
 document.getElementById('detailPanel').style.display = 'block';
-    // add to routePoints if routeMode on
+
+document.getElementById('showDetailBtn').onclick = () => {
+  alert("📘 Thông tin chi tiết:\n" + (found.desc || 'Chưa có mô tả.'));
+};
     if(window.routeMode){
       window.routePoints = window.routePoints || [];
       window.routePoints.push({lat: found.lat, lng: found.lng});
@@ -663,6 +677,12 @@ tabBtns.forEach(btn=>{
     tabs.forEach(t=>t.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(btn.dataset.tab).classList.add('active');
+    function showDetail(name) {
+  const loc = (window.locations || []).find(l => l.name === name);
+  if (!loc) return alert("Không tìm thấy thông tin chi tiết.");
+  const text = `📍 ${loc.name}\n${loc.desc || "Chưa có mô tả chi tiết."}`;
+  alert(text);
+}
   });
 });
 </script>
